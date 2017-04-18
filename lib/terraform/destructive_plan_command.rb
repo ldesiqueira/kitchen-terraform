@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require "pathname"
 require 'terraform/prepare_input_file'
 require 'terraform/plan_command'
 
@@ -28,8 +29,7 @@ module Terraform
 
     def initialize(target: '')
       super
-      preparations
-        .push ::Terraform::PrepareInputFile.new file: options.state
+      preparations.push ::Terraform::PrepareInputFile.new file: ::Pathname.new(options.state)
     end
   end
 end

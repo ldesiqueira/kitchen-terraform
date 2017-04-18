@@ -16,20 +16,21 @@
 
 require 'kitchen/driver/terraform'
 require 'support/raise_error_examples'
-require 'support/terraform/cli_config_examples'
+require "support/kitchen/config/cli_examples"
+require "support/kitchen/instance_context"
 require 'support/terraform/configurable_context'
 require 'support/terraform/configurable_examples'
 
 ::RSpec.describe ::Kitchen::Driver::Terraform do
-  include_context 'instance'
-
-  let(:described_instance) { driver }
-
-  it_behaves_like ::Terraform::CLIConfig
-
-  it_behaves_like ::Terraform::Configurable
-
+  it_behaves_like ::Kitchen::Config::CLI do
+    include_context ::Kitchen::Instance do let :driver do described_instance end end
+  end
+  it_behaves_like ::Terraform::Configurable do
+    include_context "instance"
+    let :described_instance do driver end
+  end
   describe '.serial_actions' do
+    include_context "instance"
     subject(:serial_actions) { described_class.serial_actions }
 
     it('is empty') { is_expected.to be_empty }
@@ -37,13 +38,13 @@ require 'support/terraform/configurable_examples'
 
   describe '#destroy' do
     include_context 'client'
-
+    include_context "instance"
     include_context 'silent_client'
 
     let :allow_load_state do
       allow(silent_client).to receive(:load_state).with(no_args)
     end
-
+    let :described_instance do driver end
     context 'when a state does exist' do
       before { allow_load_state.and_yield }
 
@@ -81,7 +82,8 @@ require 'support/terraform/configurable_examples'
 
   describe '#verify_dependencies' do
     include_context 'client'
-
+    include_context "instance"
+    let :described_instance do driver end
     before do
       allow(::Terraform::Client).to receive(:new)
         .with(config: driver, logger: duck_type(:<<)).and_return client

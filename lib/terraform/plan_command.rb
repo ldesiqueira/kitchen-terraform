@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require "pathname"
 require 'terraform/command'
 require 'terraform/prepare_output_file'
 
@@ -24,7 +25,7 @@ module Terraform
 
     def initialize(target: '')
       super
-      preparations.push ::Terraform::PrepareOutputFile.new file: options.out
+      preparations.push ::Terraform::PrepareOutputFile.new file: Pathname.new(options.out)
     end
   end
 end

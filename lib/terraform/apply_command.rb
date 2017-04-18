@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require "pathname"
 require 'terraform/command'
 require 'terraform/prepare_input_file'
 require 'terraform/prepare_output_file'
@@ -26,8 +27,8 @@ module Terraform
     def initialize(target: '')
       super
       preparations.concat [
-        ::Terraform::PrepareInputFile.new(file: target),
-        ::Terraform::PrepareOutputFile.new(file: options.state)
+        ::Terraform::PrepareInputFile.new(file: ::Pathname.new(target)),
+        ::Terraform::PrepareOutputFile.new(file: ::Pathname.new(options.state))
       ]
     end
   end

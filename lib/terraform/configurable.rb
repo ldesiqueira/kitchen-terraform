@@ -16,7 +16,6 @@
 
 require 'forwardable'
 require 'kitchen'
-require 'pathname'
 require 'terraform/client'
 require 'terraform/debug_logger'
 require 'terraform/project_version'
@@ -53,8 +52,7 @@ module Terraform
     end
 
     def instance_pathname(filename:)
-      ::Pathname.new(config[:kitchen_root])
-                .join '.kitchen', 'kitchen-terraform', instance.name, filename
+      ::File.join config.fetch(:kitchen_root), ".kitchen", "kitchen-terraform", instance.name, filename
     end
 
     def log_deprecation(aspect:, remediation:)
