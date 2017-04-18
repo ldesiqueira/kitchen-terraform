@@ -15,46 +15,32 @@
 # limitations under the License.
 
 require "pathname"
-require 'support/terraform/command_examples'
-require 'terraform/apply_command'
-
+require "support/terraform/command_examples"
+require "terraform/apply_command"
 ::RSpec.describe ::Terraform::ApplyCommand do
-  let :described_instance do
-    described_class.new(target: 'target') { |options| options.state = 'state' }
-  end
-
-  let(:prepare_input_file) { instance_double ::Terraform::PrepareInputFile }
-
-  let(:prepare_output_file) { instance_double ::Terraform::PrepareOutputFile }
-
+  let :described_instance do described_class.new target: "target" do |options| options.state = "state" end end
+  let :prepare_input_file do instance_double ::Terraform::PrepareInputFile end
+  let :prepare_output_file do instance_double ::Terraform::PrepareOutputFile end
   before do
     allow(::Terraform::PrepareInputFile)
       .to receive(:new).with(file: ::Pathname.new("target")).and_return prepare_input_file
     allow(::Terraform::PrepareOutputFile)
       .to receive(:new).with(file: ::Pathname.new("state")).and_return prepare_output_file
   end
-
-  it_behaves_like('#name') { let(:name) { 'apply' } }
-
-  describe '#prepare' do
+  it_behaves_like "#name" do let :name do "apply" end end
+  describe "#prepare" do
     before do
       allow(prepare_input_file).to receive(:execute).with no_args
-
       allow(prepare_output_file).to receive(:execute).with no_args
     end
-
-    after { described_instance.prepare }
-
-    context 'the input target file' do
-      subject { prepare_input_file }
-
-      it('is prepared') { is_expected.to receive(:execute).with no_args }
+    after do described_instance.prepare end
+    context "the input target file" do
+      subject do prepare_input_file end
+      it "is prepared" do is_expected.to receive(:execute).with no_args end
     end
-
-    context 'the output state file' do
-      subject { prepare_output_file }
-
-      it('is prepared') { is_expected.to receive(:execute).with no_args }
+    context "the output state file" do
+      subject do prepare_output_file end
+      it "is prepared" do is_expected.to receive(:execute).with no_args end
     end
   end
 end

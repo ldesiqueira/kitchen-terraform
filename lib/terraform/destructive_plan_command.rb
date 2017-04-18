@@ -15,21 +15,16 @@
 # limitations under the License.
 
 require "pathname"
-require 'terraform/prepare_input_file'
-require 'terraform/plan_command'
-
+require "terraform/prepare_input_file"
+require "terraform/plan_command"
 module Terraform
   # A command to plan a destructive execution
   class DestructivePlanCommand < ::Terraform::PlanCommand
-    def name
-      'plan'
-    end
-
-    private
-
-    def initialize(target: '')
-      super
+    define_method :name do "plan" end
+    define_method :initialize do |target: "", &block|
+      super target: target, &block
       preparations.push ::Terraform::PrepareInputFile.new file: ::Pathname.new(options.state)
     end
+    private :initialize
   end
 end

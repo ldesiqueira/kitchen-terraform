@@ -15,21 +15,19 @@
 # limitations under the License.
 
 require "pathname"
-require 'terraform/command'
-require 'terraform/prepare_input_file'
-require 'terraform/prepare_output_file'
-
+require "terraform/command"
+require "terraform/prepare_input_file"
+require "terraform/prepare_output_file"
 module Terraform
   # A command to apply an execution plan
   class ApplyCommand < ::Terraform::Command
-    private
-
-    def initialize(target: '')
-      super
+    define_method :initialize do |target: "", &block|
+      super target: target, &block
       preparations.concat [
         ::Terraform::PrepareInputFile.new(file: ::Pathname.new(target)),
         ::Terraform::PrepareOutputFile.new(file: ::Pathname.new(options.state))
       ]
     end
+    private :initialize
   end
 end

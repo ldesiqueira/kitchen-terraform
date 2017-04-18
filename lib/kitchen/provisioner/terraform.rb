@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'kitchen'
+require "kitchen"
 require "kitchen/config/apply_timeout"
 require "kitchen/config/color"
 require "kitchen/config/directory"
@@ -23,30 +23,25 @@ require "kitchen/config/plan"
 require "kitchen/config/state"
 require "kitchen/config/variable_files"
 require "kitchen/config/variables"
-require 'terraform/configurable'
-
-module Kitchen
-  module Provisioner
-    # Applies constructive Terraform plans
-    class Terraform < ::Kitchen::Provisioner::Base
-      ::Kitchen::Config::ApplyTimeout.call plugin_class: self
-      ::Kitchen::Config::Color.call plugin_class: self
-      ::Kitchen::Config::Directory.call plugin_class: self
-      ::Kitchen::Config::Parallelism.call plugin_class: self
-      ::Kitchen::Config::Plan.call plugin_class: self
-      ::Kitchen::Config::State.call plugin_class: self
-      ::Kitchen::Config::VariableFiles.call plugin_class: self
-      ::Kitchen::Config::Variables.call plugin_class: self
-
-      include ::Terraform::Configurable
-
-      kitchen_provisioner_api_version 2
-
-      def call(_state = nil)
-        client.apply_constructively
-      rescue ::Kitchen::StandardError, ::SystemCallError => error
-        raise ::Kitchen::ActionFailed, error.message
-      end
+require "terraform/configurable"
+# Applies constructive Terraform plans
+::Kitchen::Provisioner::Terraform = ::Class.new ::Kitchen::Provisioner::Base
+::Kitchen::Config::ApplyTimeout.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::Color.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::Directory.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::Parallelism.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::Plan.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::State.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::VariableFiles.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Config::Variables.call plugin_class: ::Kitchen::Provisioner::Terraform
+::Kitchen::Provisioner::Terraform.include ::Terraform::Configurable
+::Kitchen::Provisioner::Terraform.kitchen_provisioner_api_version 2
+::Kitchen::Provisioner::Terraform.class_eval do
+  define_method :call do |_state = nil|
+    begin
+      client.apply_constructively
+    rescue ::Kitchen::StandardError, ::SystemCallError => error
+      raise ::Kitchen::ActionFailed, error.message
     end
   end
 end

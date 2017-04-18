@@ -14,70 +14,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'forwardable'
-require 'kitchen'
-require 'terraform/client'
-require 'terraform/debug_logger'
-require 'terraform/project_version'
-
+require "forwardable"
+require "kitchen"
+require "terraform/client"
+require "terraform/debug_logger"
+require "terraform/project_version"
 module Terraform
   # Behaviour for objects that extend ::Kitchen::Configurable
   module Configurable
     extend ::Forwardable
-
     def_delegator :config, :[]=
-
     def_delegators :instance, :driver, :provisioner, :transport
-
-    def self.included(configurable_class)
+    define_singleton_method :included do |configurable_class|
       configurable_class.plugin_version ::Terraform::PROJECT_VERSION
     end
-
-    def client
-      ::Terraform::Client.new config: verbose_config, logger: logger
+    define_method :client do ::Terraform::Client.new config: verbose_config, logger: logger end
+    define_method :config_deprecated do |attr:, remediation:, type:|
+      log_deprecation aspect: "#{formatted_config attr: attr} as #{type}", remediation: remediation
     end
-
-    def config_deprecated(attr:, remediation:, type:)
-      log_deprecation aspect: "#{formatted_config attr: attr} as #{type}",
-                      remediation: remediation
+    define_method :config_error do |attr:, expected:|
+      raise ::Kitchen::UserError, "#{formatted_config attr: attr} must be interpretable as #{expected}"
     end
-
-    def config_error(attr:, expected:)
-      raise ::Kitchen::UserError, "#{formatted_config attr: attr} must be " \
-                                    "interpretable as #{expected}"
-    end
-
-    def debug_logger
-      ::Terraform::DebugLogger.new logger: logger
-    end
-
-    def instance_pathname(filename:)
+    define_method :debug_logger do ::Terraform::DebugLogger.new logger: logger end
+    define_method :instance_pathname do |filename:|
       ::File.join config.fetch(:kitchen_root), ".kitchen", "kitchen-terraform", instance.name, filename
     end
-
-    def log_deprecation(aspect:, remediation:)
-      logger.warn 'DEPRECATION NOTICE'
-      logger
-        .warn "Support for #{aspect} will be dropped in kitchen-terraform v1.0"
+    define_method :log_deprecation do |aspect:, remediation:|
+      logger.warn "DEPRECATION NOTICE"
+      logger.warn "Support for #{aspect} will be dropped in kitchen-terraform v1.0"
       logger.warn remediation
     end
-
-    def silent_client
-      ::Terraform::Client.new config: silent_config, logger: debug_logger
-    end
-
-    private
-
-    def formatted_config(attr:)
-      "#{self.class}#{instance.to_str}#config[:#{attr}]"
-    end
-
-    def silent_config
-      verbose_config.tap { |config| config[:color] = false }
-    end
-
-    def verbose_config
-      provisioner.dup.tap { |config| config[:cli] = driver[:cli] }
-    end
+    define_method :silent_client do ::Terraform::Client.new config: silent_config, logger: debug_logger end
+    define_method :formatted_config do |attr:| "#{self.class}#{instance.to_str}#config[:#{attr}]" end
+    define_method :silent_config do verbose_config.tap do |config| config[:color] = false end end
+    define_method :verbose_config do provisioner.dup.tap do |config| config[:cli] = driver[:cli] end end
+    private :formatted_config, :silent_config, :verbose_config
   end
 end
